@@ -32,12 +32,10 @@ function Square({ value, handleOnClick }) {
   );
 }
 
-function Board() {
-  const [square, setSquare] = useState(Array(9).fill(null));
-  const [xIsNext, setXIsNext] = useState(true);
-
+function Board({ xIsNext, square, onPlay }) {
   const winner = calculateWinner(square);
   let notice;
+
   if (winner) {
     notice = `Winner ${winner}`;
   } else {
@@ -54,8 +52,9 @@ function Board() {
     } else {
       nextSquare[idx] = "O";
     }
-    setSquare(nextSquare);
-    setXIsNext(!xIsNext);
+    // setSquare(nextSquare);
+    // setXIsNext(!xIsNext);
+    onPlay(nextSquare);
   }
 
   return (
@@ -80,4 +79,55 @@ function Board() {
   );
 }
 
-export default Board;
+function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [xIsNext, setXIsNext] = useState(true);
+  const [currentMove, setCurrentMove] = useState(0);
+
+  const currentSquare = history[currentMove];
+
+  function handlePlay(nextSquare) {
+    setXIsNext(!xIsNext);
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquare];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+  }
+
+  function jumpInto(move) {
+    setCurrentMove(move);
+    setXIsNext(move % 2 === 0);
+  }
+
+  const move = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = `Go to move #${move}`;
+    } else {
+      description = "Go and Start the game!";
+    }
+
+    return (
+      <li key={move}>
+        <button
+          className="bg-stone-300 p-1 border border-stone-400 rounded-md mb-1"
+          onClick={() => jumpInto(move)}
+        >
+          {description}
+        </button>
+      </li>
+    );
+  });
+
+  return (
+    <div className="flex justify-center m-4">
+      <div className="mr-6">
+        <Board xIsNext={xIsNext} square={currentSquare} onPlay={handlePlay} />
+      </div>
+      <div className="bg-gray-100 p-4 border border-dashed border-gray-600 rounded-md">
+        <ol>{move}</ol>
+      </div>
+    </div>
+  );
+}
+
+export default Game;
